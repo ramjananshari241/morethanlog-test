@@ -21,6 +21,8 @@ export const getPosts = async () => {
   const collection = collectionValue?.value ?? collectionValue
   const block = response.block
   const schema = collection?.schema
+  const collectionId = Object.keys((response as any).collection || {})[0]
+  const collectionViewId = Object.keys((response as any).collection_view || {})[0]
 
   const getBlockValue = (blockMap: any, pageId: string) => {
     const dashed = idToUuid(pageId)
@@ -49,8 +51,35 @@ export const getPosts = async () => {
     return []
   } else {
     // Construct Data
-    const pageIds = getAllPageIds(response)
-    console.log("[getPosts] pageIds", { count: pageIds.length })
+    let pageIds = getAllPageIds(response)
+
+    // If `collection_query` isn't present, `getPage` may not include row blocks.
+    // In that case, explicitly query the collection to retrieve row page ids.
+    if ((!pageIds || pageIds.length === 0) && collectionId && collectionViewId) {
+      try {
+        const collectionData: any = await api.getCollectionData(
+          collectionId,
+          collectionViewId
+        )
+
+        const result = collectionData?.result ?? collectionData
+        pageIds =
+          result?.blockIds ??
+          result?.collection_group_results?.blockIds ??
+          result?.reducerResults?.collection_group_results?.blockIds ??
+          []
+      } catch (e) {
+        console.log("[getPosts] getCollectionData failed", {
+          collectionId,
+          collectionViewId,
+        })
+      }
+    }
+
+    console.log("[getPosts] pageIds", {
+      count: pageIds?.length || 0,
+      viaCollectionData: !Object.keys((response as any).collection_query || {}).length,
+    })
     const data = []
     for (let i = 0; i < pageIds.length; i++) {
       const id = pageIds[i]

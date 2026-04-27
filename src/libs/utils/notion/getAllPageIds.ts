@@ -36,12 +36,8 @@ export default function getAllPageIds(
   if (!collectionQuery || Object.keys(collectionQuery).length === 0) {
     const pageIds = fallbackFromBlocks()
     if (pageIds.length) return pageIds.map((id) => idToUuid(id))
-    throw new Error(
-      [
-        "Notion response missing `collection_query` and fallback found no pages.",
-        "Please verify NOTION_PAGE_ID points to a database (collection view) and is published to web.",
-      ].join(" ")
-    )
+    // Return empty and let callers fetch collection data via other means.
+    return []
   }
 
   const views = Object.values(collectionQuery)[0] as any
