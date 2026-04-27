@@ -185,6 +185,25 @@ const StyledWrapper = styled.div`
     aspect-ratio: 16 / 9;
     height: auto;
   }
+
+  /* Video / embed blocks sometimes have their own fixed sizing */
+  .notion-video,
+  .notion-embed,
+  .notion-embed iframe,
+  .notion-video iframe,
+  .notion-video video {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  .notion-video,
+  .notion-embed {
+    display: block !important;
+  }
+  .notion-video iframe,
+  .notion-embed iframe {
+    aspect-ratio: 16 / 9;
+    height: auto !important;
+  }
   .notion-image {
     align-items: center;
   }
