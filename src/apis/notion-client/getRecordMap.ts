@@ -13,13 +13,24 @@ const normalizeRecordMapIdsInPlace = (recordMap: any) => {
       const v: any = hasWrappedValue ? e.value : e
       if (!v || typeof v !== "object") continue
 
-      // Important: only touch the inner `value` object. If `e.value` is missing/undefined,
-      // mutating `e` would corrupt the recordMap shape and break serialization.
-      if (typeof v.id !== "string" || v.id.length === 0) {
-        v.id = typeof key === "string" ? key : ""
+      // Some sources wrap values as `{ value: { ...actualValue } }`.
+      // react-notion-x expects the inner value object.
+      if (hasWrappedValue && v?.value && typeof v.value === "object") {
+        const inner = v.value
+        if (inner?.type || inner?.id) {
+          e.value = inner
+        }
       }
 
-      if (hasWrappedValue) e.value = v
+      const vv: any = hasWrappedValue ? e.value : v
+
+      // Important: only touch the inner `value` object. If `e.value` is missing/undefined,
+      // mutating `e` would corrupt the recordMap shape and break serialization.
+      if (typeof vv.id !== "string" || vv.id.length === 0) {
+        vv.id = typeof key === "string" ? key : ""
+      }
+
+      if (hasWrappedValue) e.value = vv
     }
   }
 
