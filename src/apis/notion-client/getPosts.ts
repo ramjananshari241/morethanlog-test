@@ -57,9 +57,15 @@ export const getPosts = async () => {
     // In that case, explicitly query the collection to retrieve row page ids.
     if ((!pageIds || pageIds.length === 0) && collectionId && collectionViewId) {
       try {
+        const collectionView =
+          (response as any)?.collection_view?.[collectionViewId]?.value ??
+          (response as any)?.collection_view?.[collectionViewId]
+
         const collectionData: any = await api.getCollectionData(
           collectionId,
-          collectionViewId
+          collectionViewId,
+          collectionView,
+          { limit: 9999 }
         )
 
         const result = collectionData?.result ?? collectionData
