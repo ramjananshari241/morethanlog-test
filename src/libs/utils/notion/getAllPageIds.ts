@@ -11,31 +11,34 @@ export default function getAllPageIds(
 
   // Some environments / Notion responses may not include `collection_query`.
   // In that case, we fall back to extracting page ids directly from the block map.
-  if (!collectionQuery || Object.keys(collectionQuery).length === 0) {
+  const fallbackFromBlocks = () => {
+    if (!blockMap) return [] as ID[]
+
     const firstCollectionValue = (Object.values(collectionMap || {}) as any[])[0]
       ?.value as any
     const collectionId =
       firstCollectionValue?.value?.id ?? firstCollectionValue?.id
 
-    if (collectionId && blockMap) {
-      const pageIds = Object.entries(blockMap)
-        .filter(([, entry]: any) => {
-          const v = entry?.value?.value ?? entry?.value
-          return (
-            v?.type === "page" &&
-            v?.parent_table === "collection" &&
-            v?.parent_id === collectionId
-          )
-        })
-        .map(([id]) => id as ID)
+    const candidates = Object.entries(blockMap)
+      .filter(([, entry]: any) => {
+        const v = entry?.value?.value ?? entry?.value
+        if (v?.type !== "page") return false
+        if (v?.parent_table !== "collection") return false
+        // If we can detect the target collection id, restrict; otherwise accept all collection pages.
+        if (collectionId && v?.parent_id !== collectionId) return false
+        return true
+      })
+      .map(([id]) => id as ID)
 
-      // if Notion returns dashed uuids, normalize to the format used elsewhere
-      return pageIds.map((id) => idToUuid(id))
-    }
+    return candidates
+  }
 
+  if (!collectionQuery || Object.keys(collectionQuery).length === 0) {
+    const pageIds = fallbackFromBlocks()
+    if (pageIds.length) return pageIds.map((id) => idToUuid(id))
     throw new Error(
       [
-        "Notion response missing `collection_query` and fallback failed.",
+        "Notion response missing `collection_query` and fallback found no pages.",
         "Please verify NOTION_PAGE_ID points to a database (collection view) and is published to web.",
       ].join(" ")
     )
@@ -57,5 +60,10 @@ export default function getAllPageIds(
     })
     pageIds = [...pageSet]
   }
+  if (!pageIds?.length) {
+    const fallbackIds = fallbackFromBlocks()
+    if (fallbackIds.length) return fallbackIds.map((id) => idToUuid(id))
+  }
+
   return pageIds.map((id) => idToUuid(id))
 }

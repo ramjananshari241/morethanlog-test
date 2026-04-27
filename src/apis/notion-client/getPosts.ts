@@ -38,10 +38,19 @@ export const getPosts = async () => {
     rawMetadata?.type !== "collection_view_page" &&
     rawMetadata?.type !== "collection_view"
   ) {
+    // Build-time visibility (Vercel logs): helps diagnose wrong pageId or unexpected Notion response.
+    console.log("[getPosts] root page type not collection view", {
+      pageId: id,
+      type: rawMetadata?.type,
+      hasCollection: !!Object.keys(response.collection || {}).length,
+      hasCollectionQuery: !!Object.keys((response as any).collection_query || {}).length,
+      blockKeys: Object.keys(block || {}).length,
+    })
     return []
   } else {
     // Construct Data
     const pageIds = getAllPageIds(response)
+    console.log("[getPosts] pageIds", { count: pageIds.length })
     const data = []
     for (let i = 0; i < pageIds.length; i++) {
       const id = pageIds[i]
@@ -65,6 +74,8 @@ export const getPosts = async () => {
     })
 
     const posts = data as TPosts
+    const ok = posts.filter((p: any) => p?.title && p?.slug).length
+    console.log("[getPosts] parsed posts", { total: posts.length, withTitleAndSlug: ok })
     return posts
   }
 }
