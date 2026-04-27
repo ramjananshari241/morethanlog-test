@@ -5,11 +5,9 @@ import { PostDetail } from "src/types"
 
 const usePostQuery = () => {
   const router = useRouter()
-  const slug = Array.isArray(router.query.slug)
-    ? router.query.slug[0]
-    : router.query.slug
-  const { data } = useQuery<PostDetail>({
-    queryKey: queryKey.post(slug || ""),
+  const { slug } = router.query
+  const { data } = useQuery({
+    queryKey: queryKey.post(`${slug}`),
     enabled: false,
   })
 

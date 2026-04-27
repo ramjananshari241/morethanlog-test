@@ -1,4 +1,6 @@
 import dynamic from "next/dynamic"
+import Image from "next/image"
+import Link from "next/link"
 import { ExtendedRecordMap } from "notion-types"
 import useScheme from "src/hooks/useScheme"
 
@@ -13,7 +15,6 @@ import "prismjs/themes/prism-tomorrow.css"
 import "katex/dist/katex.min.css"
 import { FC } from "react"
 import styled from "@emotion/styled"
-import ErrorBoundary from "src/components/ErrorBoundary"
 
 const _NotionRenderer = dynamic(
   () => import("react-notion-x").then((m) => m.NotionRenderer),
@@ -45,105 +46,32 @@ const Modal = dynamic(
   }
 )
 
-const mapPageUrl = (id?: string) => {
-  const safe = typeof id === "string" ? id : ""
-  const cleaned = safe.split("-").join("")
-  return cleaned ? `https://www.notion.so/${cleaned}` : ""
-}
-
-const mapImageUrl = (url?: string) => {
-  if (!url || typeof url !== "string") return ""
-  return url
-}
-
-const SafeImage = (props: any) => {
-  const rawSrc: any = props?.src
-  const src =
-    typeof rawSrc === "string"
-      ? rawSrc
-      : typeof rawSrc?.src === "string"
-        ? rawSrc.src
-        : ""
-
-  if (!src) return null
-
-  const alt = typeof props?.alt === "string" ? props.alt : ""
-  const style = props?.style || {}
-
-  return (
-    // Use native img to avoid Next/Image strict src parsing.
-    <img
-      src={src}
-      alt={alt}
-      loading={props?.loading}
-      decoding={props?.decoding}
-      referrerPolicy={props?.referrerPolicy}
-      style={style}
-    />
-  )
-}
-
-const SafeLink = (props: any) => {
-  const rawHref: any = props?.href
-  const href = typeof rawHref === "string" ? rawHref : ""
-  if (!href) return <>{props.children}</>
-  return (
-    <a href={href} target={props?.target} rel={props?.rel}>
-      {props.children}
-    </a>
-  )
+const mapPageUrl = (id: string) => {
+  return "https://www.notion.so/" + id.replace(/-/g, "")
 }
 
 type Props = {
   recordMap: ExtendedRecordMap
-  rootPageId?: string
 }
 
-const pickRootPageId = (recordMap: any, preferred?: string) => {
-  const block = recordMap?.block
-  if (!block || typeof block !== "object") return preferred
-
-  const candidates = [preferred].filter(Boolean) as string[]
-  for (const c of [...candidates]) {
-    candidates.push(c.replace(/-/g, ""))
-  }
-
-  for (const id of candidates) {
-    if (block?.[id]?.value || block?.[id]) return id
-  }
-
-  // Fallback: pick the first "page" block (often the root page)
-  for (const [id, entry] of Object.entries(block)) {
-    const v: any = (entry as any)?.value ?? entry
-    if (v?.type === "page") return id
-  }
-
-  return preferred
-}
-
-const NotionRenderer: FC<Props> = ({ recordMap, rootPageId }) => {
+const NotionRenderer: FC<Props> = ({ recordMap }) => {
   const [scheme] = useScheme()
-  const resolvedRootPageId = pickRootPageId(recordMap as any, rootPageId)
   return (
     <StyledWrapper>
-      <ErrorBoundary name="NotionRenderer">
-        <_NotionRenderer
-          darkMode={scheme === "dark"}
-          recordMap={recordMap}
-          rootPageId={resolvedRootPageId}
-          components={{
-            Code,
-            Collection,
-            Equation,
-            Modal,
-            Pdf,
-            nextImage: SafeImage,
-            nextLink: SafeLink,
-          }}
-          mapImageUrl={mapImageUrl as any}
-          mapPageUrl={mapPageUrl}
-        />
-      </ErrorBoundary>
+      <_NotionRenderer
+        darkMode={scheme === "dark"}
+        recordMap={recordMap}
+        components={{
+          Code,
+          Collection,
+          Equation,
+          Modal,
+          Pdf,
+          nextImage: Image,
+          nextLink: Link,
+        }}
+        mapPageUrl={mapPageUrl}
+      />
     </StyledWrapper>
   )
 }

@@ -11,35 +11,24 @@ import { queryKey } from "src/constants/queryKey"
 import { dehydrate } from "@tanstack/react-query"
 import usePostQuery from "src/hooks/usePostQuery"
 import { FilterPostsOptions } from "src/libs/utils/notion/filterPosts"
-import { GetStaticPaths } from "next"
 
 const filter: FilterPostsOptions = {
   acceptStatus: ["Public", "PublicOnDetail"],
   acceptType: ["Paper", "Post", "Page"],
 }
 
-const normalizeSlug = (slug: unknown) => {
-  if (Array.isArray(slug)) return slug[0]
-  if (typeof slug === "string") return slug
-  return undefined
-}
-
-export const getStaticPaths: GetStaticPaths = async () => {
+export const getStaticPaths = async () => {
   const posts = await getPosts()
   const filteredPost = filterPosts(posts, filter)
 
   return {
     paths: filteredPost.map((row) => `/${row.slug}`),
-    // Avoid client-side fallback rendering issues with disabled queries.
-    fallback: "blocking",
+    fallback: true,
   }
 }
 
 export const getStaticProps: GetStaticProps = async (context) => {
-  const slug = normalizeSlug(context.params?.slug)
-  if (!slug) {
-    return { notFound: true, revalidate: CONFIG.revalidateTime }
-  }
+  const slug = context.params?.slug
 
   const posts = await getPosts()
   const feedPosts = filterPosts(posts)
@@ -47,12 +36,9 @@ export const getStaticProps: GetStaticProps = async (context) => {
 
   const detailPosts = filterPosts(posts, filter)
   const postDetail = detailPosts.find((t: any) => t.slug === slug)
-  if (!postDetail?.id) {
-    return { notFound: true, revalidate: CONFIG.revalidateTime }
-  }
-  const recordMap = await getRecordMap(postDetail.id)
+  const recordMap = await getRecordMap(postDetail?.id!)
 
-  await queryClient.prefetchQuery(queryKey.post(slug), () => ({
+  await queryClient.prefetchQuery(queryKey.post(`${slug}`), () => ({
     ...postDetail,
     recordMap,
   }))
