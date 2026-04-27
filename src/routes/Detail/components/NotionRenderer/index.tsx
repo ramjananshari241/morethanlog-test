@@ -15,6 +15,7 @@ import "prismjs/themes/prism-tomorrow.css"
 import "katex/dist/katex.min.css"
 import { FC } from "react"
 import styled from "@emotion/styled"
+import ErrorBoundary from "src/components/ErrorBoundary"
 
 const _NotionRenderer = dynamic(
   () => import("react-notion-x").then((m) => m.NotionRenderer),
@@ -46,8 +47,10 @@ const Modal = dynamic(
   }
 )
 
-const mapPageUrl = (id: string) => {
-  return "https://www.notion.so/" + id.replace(/-/g, "")
+const mapPageUrl = (id?: string) => {
+  const safe = typeof id === "string" ? id : ""
+  const cleaned = safe.split("-").join("")
+  return cleaned ? `https://www.notion.so/${cleaned}` : ""
 }
 
 type Props = {
@@ -58,20 +61,22 @@ const NotionRenderer: FC<Props> = ({ recordMap }) => {
   const [scheme] = useScheme()
   return (
     <StyledWrapper>
-      <_NotionRenderer
-        darkMode={scheme === "dark"}
-        recordMap={recordMap}
-        components={{
-          Code,
-          Collection,
-          Equation,
-          Modal,
-          Pdf,
-          nextImage: Image,
-          nextLink: Link,
-        }}
-        mapPageUrl={mapPageUrl}
-      />
+      <ErrorBoundary name="NotionRenderer">
+        <_NotionRenderer
+          darkMode={scheme === "dark"}
+          recordMap={recordMap}
+          components={{
+            Code,
+            Collection,
+            Equation,
+            Modal,
+            Pdf,
+            nextImage: Image,
+            nextLink: Link,
+          }}
+          mapPageUrl={mapPageUrl}
+        />
+      </ErrorBoundary>
     </StyledWrapper>
   )
 }
