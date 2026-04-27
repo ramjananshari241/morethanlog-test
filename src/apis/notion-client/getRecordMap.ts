@@ -1,7 +1,36 @@
 import { NotionAPI } from "notion-client"
 
+// Minimal normalization: don't change shapes, just ensure ids exist
+// because react-notion-x / notion-utils may call `.replace` on ids internally.
+const normalizeRecordMapIdsInPlace = (recordMap: any) => {
+  if (!recordMap || typeof recordMap !== "object") return recordMap
+
+  const fixTable = (table: any) => {
+    if (!table || typeof table !== "object") return
+    for (const [key, entry] of Object.entries(table)) {
+      const e: any = entry as any
+      const v: any = e?.value ?? e
+      if (!v || typeof v !== "object") continue
+
+      if (typeof v.id !== "string" || v.id.length === 0) {
+        v.id = typeof key === "string" ? key : ""
+      }
+
+      if (e?.value) e.value = v
+    }
+  }
+
+  fixTable(recordMap.block)
+  fixTable(recordMap.collection)
+  fixTable(recordMap.collection_view)
+  fixTable(recordMap.notion_user)
+  fixTable(recordMap.space)
+
+  return recordMap
+}
+
 export const getRecordMap = async (pageId: string) => {
   const api = new NotionAPI()
   const recordMap = await api.getPage(pageId)
-  return recordMap
+  return normalizeRecordMapIdsInPlace(recordMap)
 }

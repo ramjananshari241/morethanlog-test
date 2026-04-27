@@ -53,11 +53,16 @@ const mapPageUrl = (id?: string) => {
   return cleaned ? `https://www.notion.so/${cleaned}` : ""
 }
 
-type Props = {
-  recordMap: ExtendedRecordMap
+const mapImageUrl = (url?: string) => {
+  return typeof url === "string" ? url : ""
 }
 
-const NotionRenderer: FC<Props> = ({ recordMap }) => {
+type Props = {
+  recordMap: ExtendedRecordMap
+  rootPageId?: string
+}
+
+const NotionRenderer: FC<Props> = ({ recordMap, rootPageId }) => {
   const [scheme] = useScheme()
   return (
     <StyledWrapper>
@@ -65,6 +70,7 @@ const NotionRenderer: FC<Props> = ({ recordMap }) => {
         <_NotionRenderer
           darkMode={scheme === "dark"}
           recordMap={recordMap}
+          rootPageId={rootPageId}
           components={{
             Code,
             Collection,
@@ -74,6 +80,7 @@ const NotionRenderer: FC<Props> = ({ recordMap }) => {
             nextImage: Image,
             nextLink: Link,
           }}
+          mapImageUrl={mapImageUrl as any}
           mapPageUrl={mapPageUrl}
         />
       </ErrorBoundary>
