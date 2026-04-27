@@ -9,14 +9,17 @@ const normalizeRecordMapIdsInPlace = (recordMap: any) => {
     if (!table || typeof table !== "object") return
     for (const [key, entry] of Object.entries(table)) {
       const e: any = entry as any
-      const v: any = e?.value ?? e
+      const hasWrappedValue = Object.prototype.hasOwnProperty.call(e, "value")
+      const v: any = hasWrappedValue ? e.value : e
       if (!v || typeof v !== "object") continue
 
+      // Important: only touch the inner `value` object. If `e.value` is missing/undefined,
+      // mutating `e` would corrupt the recordMap shape and break serialization.
       if (typeof v.id !== "string" || v.id.length === 0) {
         v.id = typeof key === "string" ? key : ""
       }
 
-      if (e?.value) e.value = v
+      if (hasWrappedValue) e.value = v
     }
   }
 
