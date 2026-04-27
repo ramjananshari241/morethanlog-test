@@ -88,46 +88,14 @@ const resolveRootPageId = (recordMap: any, preferred?: string) => {
 const NotionRenderer: FC<Props> = ({ recordMap, rootPageId }) => {
   const [scheme] = useScheme()
   const resolvedRootPageId = resolveRootPageId(recordMap as any, rootPageId)
-  const blockMap: any = (recordMap as any)?.block
-  const rootEntry: any = blockMap?.[resolvedRootPageId as any]
-  const rootValue: any = rootEntry?.value ?? rootEntry
-  const debug = {
-    blockCount: blockMap ? Object.keys(blockMap).length : 0,
-    rootPageId,
-    resolvedRootPageId,
-    hasResolvedRoot: !!rootEntry,
-    rootEntryKeys: rootEntry ? Object.keys(rootEntry) : null,
-    rootValueTypeof: typeof rootEntry?.value,
-    rootType: rootValue?.type ?? null,
-    rootContentCount: Array.isArray(rootValue?.content) ? rootValue.content.length : null,
-  }
-  // eslint-disable-next-line no-console
-  console.log("[NotionRenderer debug]", debug)
   return (
     <StyledWrapper>
-      <pre
-        style={{
-          marginBottom: "1rem",
-          padding: "0.75rem 1rem",
-          borderRadius: 12,
-          background: "rgba(0,0,0,0.25)",
-          whiteSpace: "pre-wrap",
-          wordBreak: "break-word",
-          fontSize: 12,
-          lineHeight: 1.4,
-          opacity: 0.9,
-        }}
-      >
-        Notion debug:
-        {"\n"}
-        {JSON.stringify(debug, null, 2)}
-      </pre>
       <ErrorBoundary name="NotionRenderer">
         <_NotionRenderer
           darkMode={scheme === "dark"}
           recordMap={recordMap}
           rootPageId={resolvedRootPageId}
-          fullPage={true}
+          fullPage={false}
           components={{
             Code,
             Collection,
@@ -157,5 +125,19 @@ const StyledWrapper = styled.div`
   }
   .notion-list {
     width: 100%;
+  }
+  .notion-asset-wrapper {
+    margin: 1.25rem 0;
+  }
+  .notion-asset-wrapper img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.75rem;
+  }
+  .notion-image {
+    align-items: center;
+  }
+  .notion-quote {
+    border-left-color: rgba(255, 255, 255, 0.25);
   }
 `
