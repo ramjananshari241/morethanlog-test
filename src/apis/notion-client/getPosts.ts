@@ -6,6 +6,21 @@ import getAllPageIds from "src/libs/utils/notion/getAllPageIds"
 import getPageProperties from "src/libs/utils/notion/getPageProperties"
 import { TPosts } from "src/types"
 
+const sanitizeForNextProps = (input: any): any => {
+  if (input === undefined) return null
+  if (input === null) return null
+  if (Array.isArray(input)) return input.map((v) => sanitizeForNextProps(v))
+  if (typeof input === "object") {
+    const out: any = {}
+    for (const [k, v] of Object.entries(input)) {
+      if (v === undefined) continue
+      out[k] = sanitizeForNextProps(v)
+    }
+    return out
+  }
+  return input
+}
+
 /**
  * @param {{ includePages: boolean }} - false: posts only / true: include pages
  */
@@ -132,6 +147,6 @@ export const getPosts = async () => {
     const posts = data as TPosts
     const ok = posts.filter((p: any) => p?.title && p?.slug).length
     console.log("[getPosts] parsed posts", { total: posts.length, withTitleAndSlug: ok })
-    return posts
+    return sanitizeForNextProps(posts)
   }
 }
