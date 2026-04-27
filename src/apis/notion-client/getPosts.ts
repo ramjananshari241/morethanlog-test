@@ -86,6 +86,27 @@ export const getPosts = async () => {
       count: pageIds?.length || 0,
       viaCollectionData: !Object.keys((response as any).collection_query || {}).length,
     })
+
+    // If we got ids via collection query, the row blocks may not be present in `response.block`.
+    // Prefetch missing blocks so `getPageProperties` can parse title/slug/etc.
+    if (pageIds?.length) {
+      const missing = pageIds.filter((pid: string) => !getBlockValue(block, pid))
+      if (missing.length) {
+        try {
+          const chunk: any = await api.getBlocks(missing)
+          const newBlocks =
+            chunk?.recordMap?.block ?? chunk?.block ?? chunk?.recordMapWithRoles?.block
+          if (newBlocks) Object.assign(block as any, newBlocks)
+          console.log("[getPosts] prefetched blocks", {
+            requested: missing.length,
+            added: newBlocks ? Object.keys(newBlocks).length : 0,
+          })
+        } catch (e) {
+          console.log("[getPosts] getBlocks failed", { count: missing.length })
+        }
+      }
+    }
+
     const data = []
     for (let i = 0; i < pageIds.length; i++) {
       const id = pageIds[i]
