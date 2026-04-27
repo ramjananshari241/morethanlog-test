@@ -2,10 +2,13 @@ import { getPosts } from "../apis/notion-client/getPosts"
 import { CONFIG } from "site.config"
 import { getServerSideSitemap, ISitemapField } from "next-sitemap"
 import { GetServerSideProps } from "next"
+import { TPost } from "src/types"
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const posts = await getPosts()
-  const dynamicPaths = posts.map((post) => `${CONFIG.link}/${post.slug}`)
+  const dynamicPaths = (posts as TPost[]).map(
+    (post: TPost) => `${CONFIG.link}/${post.slug}`
+  )
 
   // Create an array of fields, each with a loc and lastmod
   const fields: ISitemapField[] = dynamicPaths.map((path) => ({
