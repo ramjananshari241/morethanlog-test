@@ -99,15 +99,38 @@ type Props = {
   rootPageId?: string
 }
 
+const pickRootPageId = (recordMap: any, preferred?: string) => {
+  const block = recordMap?.block
+  if (!block || typeof block !== "object") return preferred
+
+  const candidates = [preferred].filter(Boolean) as string[]
+  for (const c of [...candidates]) {
+    candidates.push(c.replace(/-/g, ""))
+  }
+
+  for (const id of candidates) {
+    if (block?.[id]?.value || block?.[id]) return id
+  }
+
+  // Fallback: pick the first "page" block (often the root page)
+  for (const [id, entry] of Object.entries(block)) {
+    const v: any = (entry as any)?.value ?? entry
+    if (v?.type === "page") return id
+  }
+
+  return preferred
+}
+
 const NotionRenderer: FC<Props> = ({ recordMap, rootPageId }) => {
   const [scheme] = useScheme()
+  const resolvedRootPageId = pickRootPageId(recordMap as any, rootPageId)
   return (
     <StyledWrapper>
       <ErrorBoundary name="NotionRenderer">
         <_NotionRenderer
           darkMode={scheme === "dark"}
           recordMap={recordMap}
-          rootPageId={rootPageId}
+          rootPageId={resolvedRootPageId}
           components={{
             Code,
             Collection,

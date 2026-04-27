@@ -34,6 +34,11 @@ const normalizeRecordMapIdsInPlace = (recordMap: any) => {
 
 export const getRecordMap = async (pageId: string) => {
   const api = new NotionAPI()
-  const recordMap = await api.getPage(pageId)
+  const recordMap = await api.getPage(pageId, {
+    fetchMissingBlocks: true,
+    signFileUrls: true,
+    // collections aren't required for rendering a single page and can be slow/flaky
+    fetchCollections: false,
+  })
   return normalizeRecordMapIdsInPlace(recordMap)
 }
