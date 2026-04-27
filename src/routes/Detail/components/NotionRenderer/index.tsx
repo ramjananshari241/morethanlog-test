@@ -52,6 +52,11 @@ const mapPageUrl = (id?: string) => {
   return "https://www.notion.so/" + id.replace(/-/g, "")
 }
 
+const mapImageUrl = (url?: string) => {
+  if (!url || typeof url !== "string") return ""
+  return url
+}
+
 type Props = {
   recordMap: ExtendedRecordMap
 }
@@ -73,6 +78,7 @@ const NotionRenderer: FC<Props> = ({ recordMap }) => {
             nextImage: Image,
             nextLink: Link,
           }}
+          mapImageUrl={mapImageUrl as any}
           mapPageUrl={mapPageUrl}
         />
       </ErrorBoundary>
