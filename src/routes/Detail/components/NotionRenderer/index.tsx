@@ -13,7 +13,7 @@ import "prismjs/themes/prism-tomorrow.css"
 // used for rendering equations (optional)
 
 import "katex/dist/katex.min.css"
-import { FC } from "react"
+import { FC, useLayoutEffect, useRef } from "react"
 import styled from "@emotion/styled"
 import ErrorBoundary from "src/components/ErrorBoundary"
 
@@ -108,11 +108,84 @@ const resolveRootPageId = (recordMap: any, preferred?: string) => {
   return preferred
 }
 
+const normalizeNotionMedia = (root: HTMLElement) => {
+  const candidates = root.querySelectorAll(
+    ".notion-asset-wrapper iframe, .notion-embed iframe, .notion-video iframe, .notion-asset-wrapper video"
+  )
+
+  candidates.forEach((node) => {
+    const el = node as HTMLElement
+    if (el.dataset.mtMediaNormalized === "1") return
+
+    const rect = el.getBoundingClientRect()
+    if (el.tagName === "IFRAME" && rect.width && rect.width < 120) return
+
+    const innerHost =
+      el.closest(".notion-embed, .notion-video") ??
+      el.closest(".notion-asset-wrapper")
+    const host = innerHost ?? el.parentElement
+    if (!host) return
+
+    host.style.position = "relative"
+    host.style.width = "100%"
+    host.style.maxWidth = "100%"
+    host.style.height = "0"
+    host.style.paddingBottom = "56.25%"
+    host.style.overflow = "hidden"
+    host.style.borderRadius = "0.75rem"
+
+    const asset = host.closest(".notion-asset-wrapper") as HTMLElement | null
+    if (asset) {
+      asset.style.width = "100%"
+      asset.style.maxWidth = "100%"
+    }
+
+    el.style.position = "absolute"
+    el.style.inset = "0"
+    el.style.width = "100%"
+    el.style.height = "100%"
+    el.style.maxWidth = "100%"
+
+    el.dataset.mtMediaNormalized = "1"
+    host.dataset.mtMediaNormalized = "1"
+  })
+}
+
 const NotionRenderer: FC<Props> = ({ recordMap, rootPageId }) => {
   const [scheme] = useScheme()
   const resolvedRootPageId = resolveRootPageId(recordMap as any, rootPageId)
+  const rootRef = useRef<HTMLDivElement | null>(null)
+
+  useLayoutEffect(() => {
+    const root = rootRef.current
+    if (!root) return
+
+    let raf = 0
+    const schedule = () => {
+      cancelAnimationFrame(raf)
+      raf = requestAnimationFrame(() => normalizeNotionMedia(root))
+    }
+
+    schedule()
+
+    const mo = new MutationObserver(schedule)
+    mo.observe(root, { subtree: true, childList: true })
+
+    const ro =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(schedule)
+        : null
+    ro?.observe(root)
+
+    return () => {
+      mo.disconnect()
+      ro?.disconnect()
+      cancelAnimationFrame(raf)
+    }
+  }, [recordMap, resolvedRootPageId, scheme])
+
   return (
-    <StyledWrapper>
+    <StyledWrapper ref={rootRef}>
       <ErrorBoundary name="NotionRenderer">
         <_NotionRenderer
           darkMode={scheme === "dark"}
