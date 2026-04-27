@@ -1,6 +1,6 @@
 import dynamic from "next/dynamic"
-import Image from "next/image"
-import Link from "next/link"
+import Image, { ImageProps } from "next/image"
+import Link, { LinkProps } from "next/link"
 import { ExtendedRecordMap } from "notion-types"
 import useScheme from "src/hooks/useScheme"
 
@@ -58,6 +58,19 @@ const mapImageUrl = (url?: string) => {
   return url
 }
 
+const SafeNextImage = (props: ImageProps) => {
+  // react-notion-x may pass undefined / empty src in some edge blocks
+  const src: any = (props as any)?.src
+  if (!src) return null
+  return <Image {...props} />
+}
+
+const SafeNextLink = (props: LinkProps & { children?: any }) => {
+  const href: any = (props as any)?.href
+  if (!href) return <>{props.children}</>
+  return <Link {...props} />
+}
+
 type Props = {
   recordMap: ExtendedRecordMap
 }
@@ -76,8 +89,8 @@ const NotionRenderer: FC<Props> = ({ recordMap }) => {
             Equation,
             Modal,
             Pdf,
-            nextImage: Image,
-            nextLink: Link,
+            nextImage: SafeNextImage,
+            nextLink: SafeNextLink,
           }}
           mapImageUrl={mapImageUrl as any}
           mapPageUrl={mapPageUrl}
