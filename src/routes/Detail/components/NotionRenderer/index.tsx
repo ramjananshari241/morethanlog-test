@@ -157,6 +157,13 @@ const StyledWrapper = styled.div`
     height: auto;
     border-radius: 0.75rem;
   }
+  .notion-asset-wrapper iframe {
+    width: 100%;
+    border: 0;
+    border-radius: 0.75rem;
+    aspect-ratio: 16 / 9;
+    background: ${({ theme }) => theme.colors.gray2};
+  }
   .notion-image {
     align-items: center;
   }
