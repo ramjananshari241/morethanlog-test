@@ -96,9 +96,10 @@ const SafeLink = (props: any) => {
 
 type Props = {
   recordMap: ExtendedRecordMap
+  rootPageId?: string
 }
 
-const NotionRenderer: FC<Props> = ({ recordMap }) => {
+const NotionRenderer: FC<Props> = ({ recordMap, rootPageId }) => {
   const [scheme] = useScheme()
   return (
     <StyledWrapper>
@@ -106,6 +107,7 @@ const NotionRenderer: FC<Props> = ({ recordMap }) => {
         <_NotionRenderer
           darkMode={scheme === "dark"}
           recordMap={recordMap}
+          rootPageId={rootPageId}
           components={{
             Code,
             Collection,
