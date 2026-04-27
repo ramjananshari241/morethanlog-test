@@ -161,6 +161,12 @@ const StyledWrapper = styled.div`
     width: 100%;
     max-width: 100%;
   }
+  /* Some notion blocks set inline max-width; override to align */
+  .notion-asset-wrapper,
+  .notion-asset-wrapper > *,
+  .notion-asset-wrapper > * > * {
+    max-width: 100% !important;
+  }
   .notion-asset-wrapper img,
   .notion-asset-wrapper video,
   .notion-asset-wrapper iframe {
@@ -181,6 +187,12 @@ const StyledWrapper = styled.div`
   }
   .notion-image {
     align-items: center;
+  }
+  .notion-image,
+  .notion-image > picture,
+  .notion-image > img {
+    width: 100% !important;
+    max-width: 100% !important;
   }
   .notion-quote {
     border-left-color: rgba(255, 255, 255, 0.25);
