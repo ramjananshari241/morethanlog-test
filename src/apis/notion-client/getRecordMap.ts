@@ -3,7 +3,7 @@ import { NotionAPI } from "notion-client"
 const sanitizeForReactNotionX = (recordMap: any) => {
   if (!recordMap || typeof recordMap !== "object") return recordMap
 
-  // replace undefined with null / remove invalid entries
+  // Replace undefined with null (Next props + react-notion-x friendliness)
   const sanitize = (input: any): any => {
     if (input === undefined) return null
     if (input === null) return null
@@ -11,7 +11,10 @@ const sanitizeForReactNotionX = (recordMap: any) => {
     if (typeof input === "object") {
       const out: any = {}
       for (const [k, v] of Object.entries(input)) {
-        if (v === undefined) continue
+        if (v === undefined) {
+          out[k] = null
+          continue
+        }
         out[k] = sanitize(v)
       }
       return out
@@ -22,14 +25,13 @@ const sanitizeForReactNotionX = (recordMap: any) => {
   const rm = sanitize(recordMap)
 
   // Ensure notion record values have stable string ids (react-notion-x / notion-utils may call `.replace` on ids).
-  const fixRecordValues = (map: any) => {
+  const fixRecordValues = (map: any, tableName: string) => {
     if (!map || typeof map !== "object") return
     for (const [key, entry] of Object.entries(map)) {
-      const value: any = (entry as any)?.value ?? entry
-      if (!value || typeof value !== "object") {
-        delete map[key]
-        continue
-      }
+      // notion-client usually returns { role, value }. Keep that shape whenever possible.
+      const hasWrappedValue = !!(entry as any)?.value
+      const value: any = hasWrappedValue ? (entry as any).value : entry
+      if (!value || typeof value !== "object") continue
 
       if (typeof value.id !== "string" || value.id.length === 0) {
         value.id = typeof key === "string" ? key : ""
@@ -39,17 +41,21 @@ const sanitizeForReactNotionX = (recordMap: any) => {
         value.content = value.content.filter((x: any) => typeof x === "string")
       }
 
-      // write back normalized shape
-      if ((entry as any)?.value) (entry as any).value = value
-      else map[key] = { ...(entry as any), value }
+      // Write back without changing the outer shape unnecessarily.
+      if (hasWrappedValue) {
+        ;(entry as any).value = value
+      } else {
+        // If this table unexpectedly isn't wrapped, wrap it rather than spreading into a new shape.
+        map[key] = { role: "reader", value }
+      }
     }
   }
 
-  fixRecordValues(rm.block)
-  fixRecordValues(rm.collection)
-  fixRecordValues(rm.collection_view)
-  fixRecordValues(rm.notion_user)
-  fixRecordValues(rm.space)
+  fixRecordValues(rm.block, "block")
+  fixRecordValues(rm.collection, "collection")
+  fixRecordValues(rm.collection_view, "collection_view")
+  fixRecordValues(rm.notion_user, "notion_user")
+  fixRecordValues(rm.space, "space")
 
   return rm
 }
