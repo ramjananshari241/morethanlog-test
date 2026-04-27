@@ -48,8 +48,9 @@ const Modal = dynamic(
 )
 
 const mapPageUrl = (id?: string) => {
-  if (!id || typeof id !== "string") return ""
-  return "https://www.notion.so/" + id.replace(/-/g, "")
+  const safe = typeof id === "string" ? id : ""
+  const cleaned = safe.split("-").join("")
+  return cleaned ? `https://www.notion.so/${cleaned}` : ""
 }
 
 const mapImageUrl = (url?: string) => {
