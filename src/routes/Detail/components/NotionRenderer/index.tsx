@@ -151,18 +151,32 @@ const StyledWrapper = styled.div`
   }
   .notion-asset-wrapper {
     margin: 1.25rem 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
   }
-  .notion-asset-wrapper img {
+  /* Unify media sizing/alignment inside posts */
+  .notion-asset-wrapper > * {
+    width: 100%;
+    max-width: 100%;
+  }
+  .notion-asset-wrapper img,
+  .notion-asset-wrapper video,
+  .notion-asset-wrapper iframe {
+    display: block;
+    width: 100%;
     max-width: 100%;
     height: auto;
     border-radius: 0.75rem;
+    overflow: hidden;
+    background: ${({ theme }) => theme.colors.gray2};
   }
   .notion-asset-wrapper iframe {
     width: 100%;
     border: 0;
     border-radius: 0.75rem;
     aspect-ratio: 16 / 9;
-    background: ${({ theme }) => theme.colors.gray2};
+    height: auto;
   }
   .notion-image {
     align-items: center;
