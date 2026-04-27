@@ -1,4 +1,4 @@
-import { getTextContent, getDateValue } from "notion-utils"
+import { getTextContent, getDateValue, idToUuid } from "notion-utils"
 import { NotionAPI } from "notion-client"
 import { BlockMap, CollectionPropertySchemaMap } from "notion-types"
 import { customMapImageUrl } from "./customMapImageUrl"
@@ -9,7 +9,12 @@ async function getPageProperties(
   schema: CollectionPropertySchemaMap
 ) {
   const api = new NotionAPI()
-  const blockEntry = block?.[id]?.value as any
+  const idDashed = idToUuid(id)
+  const idRaw = idDashed.replace(/-/g, "")
+  const blockEntry =
+    (block?.[id]?.value as any) ??
+    (block?.[idDashed]?.value as any) ??
+    (block?.[idRaw]?.value as any)
   const blockValue = blockEntry?.value ?? blockEntry
   const rawProperties = Object.entries(blockValue?.properties || [])
   const excludeProperties = ["date", "select", "multi_select", "person", "file"]

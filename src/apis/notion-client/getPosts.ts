@@ -22,7 +22,15 @@ export const getPosts = async () => {
   const block = response.block
   const schema = collection?.schema
 
-  const blockValue = (block[id].value as any)?.value ?? block[id].value
+  const getBlockValue = (blockMap: any, pageId: string) => {
+    const dashed = idToUuid(pageId)
+    const raw = dashed.replace(/-/g, "")
+    const entry =
+      blockMap?.[pageId]?.value ?? blockMap?.[dashed]?.value ?? blockMap?.[raw]?.value
+    return entry?.value ?? entry
+  }
+
+  const blockValue = getBlockValue(block, id)
   const rawMetadata = blockValue
 
   // Check Type
@@ -39,7 +47,7 @@ export const getPosts = async () => {
       const id = pageIds[i]
       const properties = (await getPageProperties(id, block, schema)) || null
       // Add fullwidth, createdtime to properties
-      const pageBlockValue = (block[id].value as any)?.value ?? block[id].value
+      const pageBlockValue = getBlockValue(block, id)
       properties.createdTime = new Date(
         pageBlockValue?.created_time
       ).toString()
