@@ -96,10 +96,10 @@ const NotionRenderer: FC<Props> = ({ recordMap, rootPageId }) => {
     rootPageId,
     resolvedRootPageId,
     hasResolvedRoot: !!rootEntry,
-    rootType: rootValue?.type,
-    rootContentCount: Array.isArray(rootValue?.content)
-      ? rootValue.content.length
-      : undefined,
+    rootEntryKeys: rootEntry ? Object.keys(rootEntry) : null,
+    rootValueTypeof: typeof rootEntry?.value,
+    rootType: rootValue?.type ?? null,
+    rootContentCount: Array.isArray(rootValue?.content) ? rootValue.content.length : null,
   }
   // eslint-disable-next-line no-console
   console.log("[NotionRenderer debug]", debug)
