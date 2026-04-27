@@ -20,9 +20,15 @@ type Props = {
 }
 
 const CommentBox: React.FC<Props> = ({ data }) => {
+  const utterancesRepo = (CONFIG.utterances.config as any)?.repo
+  const canUseUtterances =
+    CONFIG.utterances.enable &&
+    typeof utterancesRepo === "string" &&
+    utterancesRepo.length > 0
+
   return (
     <div>
-      {CONFIG.utterances.enable && <UtterancesComponent issueTerm={data.id} />}
+      {canUseUtterances && <UtterancesComponent issueTerm={data.id} />}
       {CONFIG.cusdis.enable && (
         <CusdisComponent id={data.id} slug={data.slug} title={data.title} />
       )}
