@@ -1,6 +1,4 @@
 import dynamic from "next/dynamic"
-import Image, { ImageProps } from "next/image"
-import Link, { LinkProps } from "next/link"
 import { ExtendedRecordMap } from "notion-types"
 import useScheme from "src/hooks/useScheme"
 
@@ -58,17 +56,42 @@ const mapImageUrl = (url?: string) => {
   return url
 }
 
-const SafeNextImage = (props: ImageProps) => {
-  // react-notion-x may pass undefined / empty src in some edge blocks
-  const src: any = (props as any)?.src
+const SafeImage = (props: any) => {
+  const rawSrc: any = props?.src
+  const src =
+    typeof rawSrc === "string"
+      ? rawSrc
+      : typeof rawSrc?.src === "string"
+        ? rawSrc.src
+        : ""
+
   if (!src) return null
-  return <Image {...props} />
+
+  const alt = typeof props?.alt === "string" ? props.alt : ""
+  const style = props?.style || {}
+
+  return (
+    // Use native img to avoid Next/Image strict src parsing.
+    <img
+      src={src}
+      alt={alt}
+      loading={props?.loading}
+      decoding={props?.decoding}
+      referrerPolicy={props?.referrerPolicy}
+      style={style}
+    />
+  )
 }
 
-const SafeNextLink = (props: LinkProps & { children?: any }) => {
-  const href: any = (props as any)?.href
+const SafeLink = (props: any) => {
+  const rawHref: any = props?.href
+  const href = typeof rawHref === "string" ? rawHref : ""
   if (!href) return <>{props.children}</>
-  return <Link {...props} />
+  return (
+    <a href={href} target={props?.target} rel={props?.rel}>
+      {props.children}
+    </a>
+  )
 }
 
 type Props = {
@@ -89,8 +112,8 @@ const NotionRenderer: FC<Props> = ({ recordMap }) => {
             Equation,
             Modal,
             Pdf,
-            nextImage: SafeNextImage,
-            nextLink: SafeNextLink,
+            nextImage: SafeImage,
+            nextLink: SafeLink,
           }}
           mapImageUrl={mapImageUrl as any}
           mapPageUrl={mapPageUrl}
