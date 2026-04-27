@@ -1,8 +1,8 @@
 import dynamic from "next/dynamic"
-import Image from "next/image"
 import Link from "next/link"
 import { ExtendedRecordMap } from "notion-types"
 import useScheme from "src/hooks/useScheme"
+import { customMapImageUrl } from "src/libs/utils/notion/customMapImageUrl"
 
 // core styles shared by all of react-notion-x (required)
 import "react-notion-x/src/styles.css"
@@ -53,8 +53,31 @@ const mapPageUrl = (id?: string) => {
   return cleaned ? `https://www.notion.so/${cleaned}` : ""
 }
 
-const mapImageUrl = (url?: string) => {
-  return typeof url === "string" ? url : ""
+const mapImageUrl = (url?: string, block?: any) => {
+  if (typeof url !== "string" || !url) return ""
+  try {
+    if (block) return customMapImageUrl(url, block)
+  } catch {
+    // ignore and fall back
+  }
+  return url
+}
+
+const SafeImage = (props: any) => {
+  const src = typeof props?.src === "string" ? props.src : props?.src?.src
+  if (!src || typeof src !== "string") return null
+  const alt = typeof props?.alt === "string" ? props.alt : ""
+  const style = props?.style || {}
+  return (
+    <img
+      src={src}
+      alt={alt}
+      loading={props?.loading}
+      decoding={props?.decoding}
+      referrerPolicy={props?.referrerPolicy}
+      style={style}
+    />
+  )
 }
 
 type Props = {
@@ -102,7 +125,7 @@ const NotionRenderer: FC<Props> = ({ recordMap, rootPageId }) => {
             Equation,
             Modal,
             Pdf,
-            nextImage: Image,
+            nextImage: SafeImage,
             nextLink: Link,
           }}
           mapImageUrl={mapImageUrl as any}
