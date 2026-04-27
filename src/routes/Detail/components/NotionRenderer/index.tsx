@@ -62,15 +62,72 @@ type Props = {
   rootPageId?: string
 }
 
+const resolveRootPageId = (recordMap: any, preferred?: string) => {
+  const block = recordMap?.block
+  if (!block || typeof block !== "object") return preferred
+
+  const candidates: string[] = []
+  if (typeof preferred === "string" && preferred.length) {
+    candidates.push(preferred)
+    candidates.push(preferred.split("-").join(""))
+  }
+
+  for (const id of candidates) {
+    if ((block as any)[id]) return id
+  }
+
+  // Fallback: pick first page block key
+  for (const [id, entry] of Object.entries(block)) {
+    const v: any = (entry as any)?.value ?? entry
+    if (v?.type === "page") return id
+  }
+
+  return preferred
+}
+
 const NotionRenderer: FC<Props> = ({ recordMap, rootPageId }) => {
   const [scheme] = useScheme()
+  const resolvedRootPageId = resolveRootPageId(recordMap as any, rootPageId)
+  const blockMap: any = (recordMap as any)?.block
+  const rootEntry: any = blockMap?.[resolvedRootPageId as any]
+  const rootValue: any = rootEntry?.value ?? rootEntry
+  const debug = {
+    blockCount: blockMap ? Object.keys(blockMap).length : 0,
+    rootPageId,
+    resolvedRootPageId,
+    hasResolvedRoot: !!rootEntry,
+    rootType: rootValue?.type,
+    rootContentCount: Array.isArray(rootValue?.content)
+      ? rootValue.content.length
+      : undefined,
+  }
+  // eslint-disable-next-line no-console
+  console.log("[NotionRenderer debug]", debug)
   return (
     <StyledWrapper>
+      <pre
+        style={{
+          marginBottom: "1rem",
+          padding: "0.75rem 1rem",
+          borderRadius: 12,
+          background: "rgba(0,0,0,0.25)",
+          whiteSpace: "pre-wrap",
+          wordBreak: "break-word",
+          fontSize: 12,
+          lineHeight: 1.4,
+          opacity: 0.9,
+        }}
+      >
+        Notion debug:
+        {"\n"}
+        {JSON.stringify(debug, null, 2)}
+      </pre>
       <ErrorBoundary name="NotionRenderer">
         <_NotionRenderer
           darkMode={scheme === "dark"}
           recordMap={recordMap}
-          rootPageId={rootPageId}
+          rootPageId={resolvedRootPageId}
+          fullPage={true}
           components={{
             Code,
             Collection,
