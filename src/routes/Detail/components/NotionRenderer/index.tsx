@@ -198,11 +198,23 @@ const StyledWrapper = styled.div`
   .notion-video,
   .notion-embed {
     display: block !important;
+    position: relative;
+    /* force responsive 16:9 container even if Notion sets fixed size */
+    padding-bottom: 56.25%;
+    height: 0 !important;
+    overflow: hidden;
+    border-radius: 0.75rem;
   }
   .notion-video iframe,
   .notion-embed iframe {
-    aspect-ratio: 16 / 9;
-    height: auto !important;
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+  /* last-resort: any notion iframe should be responsive */
+  .notion-page iframe {
+    max-width: 100% !important;
   }
   .notion-image {
     align-items: center;
