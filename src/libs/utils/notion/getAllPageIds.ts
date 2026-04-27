@@ -12,7 +12,8 @@ export default function getAllPageIds(
   // Some environments / Notion responses may not include `collection_query`.
   // In that case, we fall back to extracting page ids directly from the block map.
   if (!collectionQuery || Object.keys(collectionQuery).length === 0) {
-    const firstCollectionValue = Object.values(collectionMap || {})[0]?.value
+    const firstCollectionValue = (Object.values(collectionMap || {}) as any[])[0]
+      ?.value as any
     const collectionId =
       firstCollectionValue?.value?.id ?? firstCollectionValue?.id
 
