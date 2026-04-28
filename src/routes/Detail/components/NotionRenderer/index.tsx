@@ -115,8 +115,6 @@ const normalizeNotionMedia = (root: HTMLElement) => {
 
   candidates.forEach((node) => {
     const el = node as HTMLElement
-    // allow re-normalization when the embed finishes loading and the height becomes measurable
-    const lastHeight = Number.parseFloat(el.dataset.mtEmbedHeight || "0") || 0
 
     const rect = el.getBoundingClientRect()
     if (el.tagName === "IFRAME" && rect.width && rect.width < 120) return
@@ -126,39 +124,6 @@ const normalizeNotionMedia = (root: HTMLElement) => {
       (el.closest(".notion-asset-wrapper") as HTMLElement | null)
     const host = (innerHost ?? el.parentElement) as HTMLElement | null
     if (!host) return
-
-    const isVideoBlock = !!el.closest(".notion-video")
-
-    // Detect "short" embeds (audio players / widgets). Those should NOT be put
-    // into a 16:9 responsive container; render them as normal flow content.
-    const attrHeight =
-      el.tagName === "IFRAME"
-        ? Number.parseFloat((el as HTMLIFrameElement).getAttribute("height") || "0")
-        : 0
-    const cssHeight =
-      typeof window !== "undefined"
-        ? Number.parseFloat(window.getComputedStyle(el).height || "0")
-        : 0
-    const measuredHeight = rect.height || cssHeight || attrHeight || 0
-
-    const isShortEmbed =
-      el.tagName === "IFRAME" &&
-      !isVideoBlock &&
-      // if we can measure it: treat <240px as short
-      ((measuredHeight > 0 && measuredHeight < 240) ||
-        // if not measurable yet, default embed iframes to "short" behavior
-        measuredHeight === 0)
-
-    // Default "short embed" height:
-    // - if measurable: use that
-    // - else: use a safe height so controls aren't clipped
-    const shortEmbedHeight =
-      measuredHeight > 0 ? Math.ceil(measuredHeight) : 190
-
-    // If we've already normalized with the same height, skip
-    if (el.dataset.mtMediaNormalized === "1" && isShortEmbed && lastHeight === shortEmbedHeight) {
-      return
-    }
 
     host.style.position = "relative"
     host.style.display = "block"
@@ -183,29 +148,15 @@ const normalizeNotionMedia = (root: HTMLElement) => {
       iframe.style.display = "block"
     }
 
-    if (isShortEmbed) {
-      host.style.height = "auto"
-      host.style.paddingBottom = "0"
-      // avoid clipping audio controls / widget UIs
-      host.style.overflow = "visible"
+    // Treat embeds as responsive media by default (avoid "flat" players)
+    host.style.height = "0"
+    host.style.paddingBottom = "56.25%"
 
-      el.style.position = "static"
-      el.style.inset = ""
-      // allow CSS to override using a variable if needed
-      el.style.setProperty("--mt-embed-height", `${shortEmbedHeight}px`)
-      el.style.height = `${shortEmbedHeight}px`
-    } else {
-      host.style.height = "0"
-      host.style.paddingBottom = "56.25%"
-      host.style.overflow = "hidden"
-
-      el.style.position = "absolute"
-      el.style.inset = "0"
-      el.style.height = "100%"
-    }
+    el.style.position = "absolute"
+    el.style.inset = "0"
+    el.style.height = "100%"
 
     el.dataset.mtMediaNormalized = "1"
-    el.dataset.mtEmbedHeight = `${shortEmbedHeight}`
     host.dataset.mtMediaNormalized = "1"
   })
 }
@@ -244,7 +195,7 @@ const NotionRenderer: FC<Props> = ({ recordMap, rootPageId }) => {
   }, [recordMap, resolvedRootPageId, scheme])
 
   return (
-    <StyledWrapper ref={rootRef} data-mt-embedfix="2026-04-28-v3">
+    <StyledWrapper ref={rootRef}>
       <ErrorBoundary name="NotionRenderer">
         <_NotionRenderer
           darkMode={scheme === "dark"}
@@ -271,11 +222,6 @@ const NotionRenderer: FC<Props> = ({ recordMap, rootPageId }) => {
 export default NotionRenderer
 
 const StyledWrapper = styled.div`
-  /* deploy marker: if this shows up in DOM, you're on latest */
-  &[data-mt-embedfix="2026-04-28-v3"] {
-    /* no visual changes */
-  }
-
   /* // TODO: why render? */
   .notion-collection-page-properties {
     display: none !important;
@@ -353,27 +299,23 @@ const StyledWrapper = styled.div`
     height: 100% !important;
   }
 
-  /* Generic embeds (often audio/widgets) should not be forced into 16:9 */
+  /* Embeds: keep same shape as video to avoid "flat" players */
   .notion-embed {
     width: 100% !important;
     max-width: 100% !important;
     display: block !important;
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0 !important;
+    overflow: hidden;
+    border-radius: 0.75rem;
   }
   .notion-embed iframe {
-    position: static !important;
-    inset: auto !important;
+    position: absolute !important;
+    inset: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
-    height: var(--mt-embed-height, 96px) !important;
-  }
-
-  /* Absolute fallback: any iframe inside asset wrapper (but not notion-video) becomes short embed */
-  .notion-asset-wrapper :not(.notion-video) > iframe {
-    position: static !important;
-    inset: auto !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    height: var(--mt-embed-height, 96px) !important;
+    height: 100% !important;
   }
   /* last-resort: any notion iframe should be responsive */
   .notion-page iframe {
