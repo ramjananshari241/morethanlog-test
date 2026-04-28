@@ -126,11 +126,22 @@ const normalizeNotionMedia = (root: HTMLElement) => {
     const host = (innerHost ?? el.parentElement) as HTMLElement | null
     if (!host) return
 
+    // Some embeds are short (audio / widgets). For those, keep a fixed height so
+    // controls don't get clipped by a 16:9 responsive container.
+    const computedHeight =
+      rect.height ||
+      (Number.parseFloat(
+        typeof window !== "undefined" ? window.getComputedStyle(el).height : "0"
+      ) || 0)
+    const isShortEmbed =
+      el.tagName === "IFRAME" && computedHeight > 0 && computedHeight < 240
+
     host.style.position = "relative"
+    host.style.display = "block"
     host.style.width = "100%"
     host.style.maxWidth = "100%"
-    host.style.height = "0"
-    host.style.paddingBottom = "56.25%"
+    host.style.height = isShortEmbed ? `${Math.ceil(computedHeight)}px` : "0"
+    host.style.paddingBottom = isShortEmbed ? "0" : "56.25%"
     host.style.overflow = "hidden"
     host.style.borderRadius = "0.75rem"
 
