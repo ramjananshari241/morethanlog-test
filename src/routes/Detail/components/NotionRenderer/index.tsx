@@ -299,21 +299,17 @@ const StyledWrapper = styled.div`
     width: 100%;
     border: 0;
     border-radius: 0.75rem;
-    aspect-ratio: 16 / 9;
     height: auto;
   }
 
   /* Video / embed blocks sometimes have their own fixed sizing */
   .notion-video,
-  .notion-embed,
-  .notion-embed iframe,
   .notion-video iframe,
   .notion-video video {
     width: 100% !important;
     max-width: 100% !important;
   }
-  .notion-video,
-  .notion-embed {
+  .notion-video {
     display: block !important;
     position: relative;
     /* force responsive 16:9 container even if Notion sets fixed size */
@@ -323,11 +319,25 @@ const StyledWrapper = styled.div`
     border-radius: 0.75rem;
   }
   .notion-video iframe,
-  .notion-embed iframe {
+  .notion-video video {
     position: absolute !important;
     inset: 0 !important;
     width: 100% !important;
     height: 100% !important;
+  }
+
+  /* Generic embeds (often audio/widgets) should not be forced into 16:9 */
+  .notion-embed {
+    width: 100% !important;
+    max-width: 100% !important;
+    display: block !important;
+  }
+  .notion-embed iframe {
+    position: static !important;
+    inset: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 190px !important;
   }
   /* last-resort: any notion iframe should be responsive */
   .notion-page iframe {
