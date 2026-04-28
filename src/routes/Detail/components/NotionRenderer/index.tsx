@@ -229,7 +229,7 @@ const NotionRenderer: FC<Props> = ({ recordMap, rootPageId }) => {
   }, [recordMap, resolvedRootPageId, scheme])
 
   return (
-    <StyledWrapper ref={rootRef}>
+    <StyledWrapper ref={rootRef} data-mt-embedfix="2026-04-28-v3">
       <ErrorBoundary name="NotionRenderer">
         <_NotionRenderer
           darkMode={scheme === "dark"}
@@ -256,6 +256,11 @@ const NotionRenderer: FC<Props> = ({ recordMap, rootPageId }) => {
 export default NotionRenderer
 
 const StyledWrapper = styled.div`
+  /* deploy marker: if this shows up in DOM, you're on latest */
+  &[data-mt-embedfix="2026-04-28-v3"] {
+    /* no visual changes */
+  }
+
   /* // TODO: why render? */
   .notion-collection-page-properties {
     display: none !important;
@@ -282,6 +287,13 @@ const StyledWrapper = styled.div`
   .notion-asset-wrapper,
   .notion-asset-wrapper > *,
   .notion-asset-wrapper > * > * {
+    max-width: 100% !important;
+  }
+  /* Force any nested wrapper to full width */
+  .notion-asset-wrapper > div,
+  .notion-asset-wrapper > div > div,
+  .notion-asset-wrapper > div > div > div {
+    width: 100% !important;
     max-width: 100% !important;
   }
   .notion-asset-wrapper img,
@@ -333,6 +345,15 @@ const StyledWrapper = styled.div`
     display: block !important;
   }
   .notion-embed iframe {
+    position: static !important;
+    inset: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 190px !important;
+  }
+
+  /* Absolute fallback: any iframe inside asset wrapper (but not notion-video) becomes short embed */
+  .notion-asset-wrapper :not(.notion-video) > iframe {
     position: static !important;
     inset: auto !important;
     width: 100% !important;
