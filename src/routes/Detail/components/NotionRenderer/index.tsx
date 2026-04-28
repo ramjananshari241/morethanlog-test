@@ -148,8 +148,11 @@ const normalizeNotionMedia = (root: HTMLElement) => {
         // if not measurable yet, default embed iframes to "short" behavior
         measuredHeight === 0)
 
+    // Default "short embed" height:
+    // - if measurable: use that
+    // - else: use a conservative height (audio players are typically short)
     const shortEmbedHeight =
-      measuredHeight > 0 ? Math.ceil(measuredHeight) : 190
+      measuredHeight > 0 ? Math.ceil(measuredHeight) : 96
 
     host.style.position = "relative"
     host.style.display = "block"
@@ -180,6 +183,8 @@ const normalizeNotionMedia = (root: HTMLElement) => {
 
       el.style.position = "static"
       el.style.inset = ""
+      // allow CSS to override using a variable if needed
+      el.style.setProperty("--mt-embed-height", `${shortEmbedHeight}px`)
       el.style.height = `${shortEmbedHeight}px`
     } else {
       host.style.height = "0"
@@ -349,7 +354,7 @@ const StyledWrapper = styled.div`
     inset: auto !important;
     width: 100% !important;
     max-width: 100% !important;
-    height: 190px !important;
+    height: var(--mt-embed-height, 96px) !important;
   }
 
   /* Absolute fallback: any iframe inside asset wrapper (but not notion-video) becomes short embed */
@@ -358,7 +363,7 @@ const StyledWrapper = styled.div`
     inset: auto !important;
     width: 100% !important;
     max-width: 100% !important;
-    height: 190px !important;
+    height: var(--mt-embed-height, 96px) !important;
   }
   /* last-resort: any notion iframe should be responsive */
   .notion-page iframe {
