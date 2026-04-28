@@ -121,9 +121,9 @@ const normalizeNotionMedia = (root: HTMLElement) => {
     if (el.tagName === "IFRAME" && rect.width && rect.width < 120) return
 
     const innerHost =
-      el.closest(".notion-embed, .notion-video") ??
-      el.closest(".notion-asset-wrapper")
-    const host = innerHost ?? el.parentElement
+      (el.closest(".notion-embed, .notion-video") as HTMLElement | null) ??
+      (el.closest(".notion-asset-wrapper") as HTMLElement | null)
+    const host = (innerHost ?? el.parentElement) as HTMLElement | null
     if (!host) return
 
     host.style.position = "relative"
