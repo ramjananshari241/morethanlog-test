@@ -119,6 +119,10 @@ const normalizeNotionMedia = (root: HTMLElement) => {
     const rect = el.getBoundingClientRect()
     if (el.tagName === "IFRAME" && rect.width && rect.width < 120) return
 
+    // Only normalize known Notion media hosts. Other iframes/videos should rely on CSS.
+    const hasKnownHost = !!el.closest(".notion-embed, .notion-video")
+    if (!hasKnownHost) return
+
     const innerHost =
       (el.closest(".notion-embed, .notion-video") as HTMLElement | null) ??
       (el.closest(".notion-asset-wrapper") as HTMLElement | null)
@@ -148,7 +152,7 @@ const normalizeNotionMedia = (root: HTMLElement) => {
       iframe.style.display = "block"
     }
 
-    // Treat embeds as responsive media by default (avoid "flat" players)
+    // Treat embeds/videos as responsive media (avoid "flat" players)
     host.style.height = "0"
     host.style.paddingBottom = "56.25%"
 
@@ -272,6 +276,8 @@ const StyledWrapper = styled.div`
     width: 100%;
     border: 0;
     border-radius: 0.75rem;
+    /* Default to a video-like shape when Notion doesn't provide sizing */
+    aspect-ratio: 16 / 9;
     height: auto;
   }
 
