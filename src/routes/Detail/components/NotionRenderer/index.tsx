@@ -260,7 +260,7 @@ const StyledWrapper = styled.div`
   .notion-collection-page-properties {
     display: none !important;
   }
-  /* minor change to force rebuild */
+  /* minor change to force rebuild (noop) */
   .notion-page {
     padding: 0;
   }
