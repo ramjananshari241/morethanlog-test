@@ -115,7 +115,8 @@ const normalizeNotionMedia = (root: HTMLElement) => {
 
   candidates.forEach((node) => {
     const el = node as HTMLElement
-    if (el.dataset.mtMediaNormalized === "1") return
+    // allow re-normalization when the embed finishes loading and the height becomes measurable
+    const lastHeight = Number.parseFloat(el.dataset.mtEmbedHeight || "0") || 0
 
     const rect = el.getBoundingClientRect()
     if (el.tagName === "IFRAME" && rect.width && rect.width < 120) return
@@ -150,9 +151,14 @@ const normalizeNotionMedia = (root: HTMLElement) => {
 
     // Default "short embed" height:
     // - if measurable: use that
-    // - else: use a conservative height (audio players are typically short)
+    // - else: use a safe height so controls aren't clipped
     const shortEmbedHeight =
-      measuredHeight > 0 ? Math.ceil(measuredHeight) : 96
+      measuredHeight > 0 ? Math.ceil(measuredHeight) : 190
+
+    // If we've already normalized with the same height, skip
+    if (el.dataset.mtMediaNormalized === "1" && isShortEmbed && lastHeight === shortEmbedHeight) {
+      return
+    }
 
     host.style.position = "relative"
     host.style.display = "block"
@@ -180,6 +186,8 @@ const normalizeNotionMedia = (root: HTMLElement) => {
     if (isShortEmbed) {
       host.style.height = "auto"
       host.style.paddingBottom = "0"
+      // avoid clipping audio controls / widget UIs
+      host.style.overflow = "visible"
 
       el.style.position = "static"
       el.style.inset = ""
@@ -189,6 +197,7 @@ const normalizeNotionMedia = (root: HTMLElement) => {
     } else {
       host.style.height = "0"
       host.style.paddingBottom = "56.25%"
+      host.style.overflow = "hidden"
 
       el.style.position = "absolute"
       el.style.inset = "0"
@@ -196,6 +205,7 @@ const normalizeNotionMedia = (root: HTMLElement) => {
     }
 
     el.dataset.mtMediaNormalized = "1"
+    el.dataset.mtEmbedHeight = `${shortEmbedHeight}`
     host.dataset.mtMediaNormalized = "1"
   })
 }
