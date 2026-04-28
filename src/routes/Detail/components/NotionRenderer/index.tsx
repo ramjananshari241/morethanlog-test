@@ -126,22 +126,35 @@ const normalizeNotionMedia = (root: HTMLElement) => {
     const host = (innerHost ?? el.parentElement) as HTMLElement | null
     if (!host) return
 
-    // Some embeds are short (audio / widgets). For those, keep a fixed height so
-    // controls don't get clipped by a 16:9 responsive container.
-    const computedHeight =
-      rect.height ||
-      (Number.parseFloat(
-        typeof window !== "undefined" ? window.getComputedStyle(el).height : "0"
-      ) || 0)
+    const isVideoBlock = !!el.closest(".notion-video")
+
+    // Detect "short" embeds (audio players / widgets). Those should NOT be put
+    // into a 16:9 responsive container; render them as normal flow content.
+    const attrHeight =
+      el.tagName === "IFRAME"
+        ? Number.parseFloat((el as HTMLIFrameElement).getAttribute("height") || "0")
+        : 0
+    const cssHeight =
+      typeof window !== "undefined"
+        ? Number.parseFloat(window.getComputedStyle(el).height || "0")
+        : 0
+    const measuredHeight = rect.height || cssHeight || attrHeight || 0
+
     const isShortEmbed =
-      el.tagName === "IFRAME" && computedHeight > 0 && computedHeight < 240
+      el.tagName === "IFRAME" &&
+      !isVideoBlock &&
+      // if we can measure it: treat <240px as short
+      ((measuredHeight > 0 && measuredHeight < 240) ||
+        // if not measurable yet, default embed iframes to "short" behavior
+        measuredHeight === 0)
+
+    const shortEmbedHeight =
+      measuredHeight > 0 ? Math.ceil(measuredHeight) : 190
 
     host.style.position = "relative"
     host.style.display = "block"
     host.style.width = "100%"
     host.style.maxWidth = "100%"
-    host.style.height = isShortEmbed ? `${Math.ceil(computedHeight)}px` : "0"
-    host.style.paddingBottom = isShortEmbed ? "0" : "56.25%"
     host.style.overflow = "hidden"
     host.style.borderRadius = "0.75rem"
 
@@ -151,11 +164,31 @@ const normalizeNotionMedia = (root: HTMLElement) => {
       asset.style.maxWidth = "100%"
     }
 
-    el.style.position = "absolute"
-    el.style.inset = "0"
     el.style.width = "100%"
-    el.style.height = "100%"
     el.style.maxWidth = "100%"
+
+    if (el.tagName === "IFRAME") {
+      const iframe = el as HTMLIFrameElement
+      iframe.setAttribute("width", "100%")
+      iframe.style.border = "0"
+      iframe.style.display = "block"
+    }
+
+    if (isShortEmbed) {
+      host.style.height = "auto"
+      host.style.paddingBottom = "0"
+
+      el.style.position = "static"
+      el.style.inset = ""
+      el.style.height = `${shortEmbedHeight}px`
+    } else {
+      host.style.height = "0"
+      host.style.paddingBottom = "56.25%"
+
+      el.style.position = "absolute"
+      el.style.inset = "0"
+      el.style.height = "100%"
+    }
 
     el.dataset.mtMediaNormalized = "1"
     host.dataset.mtMediaNormalized = "1"
