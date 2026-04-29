@@ -3,7 +3,7 @@ const CONFIG = {
   profile: {
     name: "被USDT卡住了？",
     image: "/blog.png", // If you want to create your own notion avatar, check out https://notion-avatar.vercel.app
-    role: "你是不是想购买PRO作品，却不知道怎么用USDT支付？ 你可能在网上见过“USDT”这个词，却完全摸不着头脑； 也可能早就听说过它，但就是不知道从哪里安全获取、怎么转账、怎么支付。没关系，我会带你从0开始，安全、快速地搞定USDT支付，再也不用担心卡在付款这一步～",
+    role: "你是不是想购买PRO作品，却不知道怎么用USDT支付？ ",
     bio: "欢迎来到【USDT萌新教学】",
     email: "morethanmin.dev@gmail.com",
     linkedin: "morethanmin",
@@ -18,8 +18,8 @@ const CONFIG = {
   ],
   // blog setting (required)
   blog: {
-    title: "USDT萌新教学",
-    description: "跟我一起，轻松走出新手村",
+    title: "被USDT卡住了？",
+    description: "一个姿势网站",
     scheme: "dark", // 'light' | 'dark' | 'system'
   },
 
