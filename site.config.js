@@ -1,9 +1,9 @@
 const CONFIG = {
   // profile setting (required)
   profile: {
-    name: "还不会用USDT？",
+    name: "还不会使用USDT？",
     image: "/blog.png", // If you want to create your own notion avatar, check out https://notion-avatar.vercel.app
-    role: "😱",
+    role: "别担心，这就是给小白准备的教学",
     bio: "",
     email: "morethanmin.dev@gmail.com",
     linkedin: "morethanmin",
