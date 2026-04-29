@@ -4,7 +4,7 @@ const CONFIG = {
     name: "还不会用USDT？",
     image: "/blog.png", // If you want to create your own notion avatar, check out https://notion-avatar.vercel.app
     role: "😱",
-    bio: "这是一个为萌新量身定制的USDT教程站~",
+    bio: "",
     email: "morethanmin.dev@gmail.com",
     linkedin: "morethanmin",
     github: "morethanmin",
@@ -18,8 +18,8 @@ const CONFIG = {
   ],
   // blog setting (required)
   blog: {
-    title: "morethan-log",
-    description: "welcome to morethan-log!",
+    title: "还不会用USDT？",
+    description: "一个简单的USDT入门指南",
     scheme: "dark", // 'light' | 'dark' | 'system'
   },
 
