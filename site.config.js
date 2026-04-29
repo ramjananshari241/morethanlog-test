@@ -4,6 +4,7 @@ const CONFIG = {
     name: "还不会用USDT？",
     image: "/blog.png", // If you want to create your own notion avatar, check out https://notion-avatar.vercel.app
     role: "😱",
+    bio: "这是一个为萌新量身定制的USDT教程站~",
     email: "morethanmin.dev@gmail.com",
     linkedin: "morethanmin",
     github: "morethanmin",
