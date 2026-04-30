@@ -3,8 +3,8 @@ const CONFIG = {
   profile: {
     name: "被USDT卡住了？",
     image: "/blog.png", // If you want to create your own notion avatar, check out https://notion-avatar.vercel.app
-    role: "你是不是想购买PRO作品，却不知道怎么用USDT支付？ ",
-    bio: "欢迎来到【USDT萌新教学】",
+    role: " ",
+    bio: "欢迎来到【USDT萌新教学】！",
     email: "morethanmin.dev@gmail.com",
     linkedin: "morethanmin",
     github: "morethanmin",
