@@ -15,6 +15,9 @@ const CategorySelect: React.FC<Props> = () => {
 
   const currentCategory = `${router.query.category || ``}` || DEFAULT_CATEGORY
 
+  const categoryDisplay =
+    currentCategory === DEFAULT_CATEGORY ? "📂 全部" : currentCategory
+
   const handleOptionClick = (category: string) => {
     router.push({
       query: {
@@ -26,19 +29,22 @@ const CategorySelect: React.FC<Props> = () => {
   return (
     <StyledWrapper>
       <div ref={dropdownRef} className="wrapper" onClick={handleOpen}>
-        {currentCategory} Posts <MdExpandMore />
+        {categoryDisplay} 文章 <MdExpandMore />
       </div>
       {opened && (
         <div className="content">
-          {Object.keys(data).map((key, idx) => (
-            <div
-              className="item"
-              key={idx}
-              onClick={() => handleOptionClick(key)}
-            >
-              {`${key} (${data[key]})`}
-            </div>
-          ))}
+          {Object.keys(data).map((key, idx) => {
+            const label = key === DEFAULT_CATEGORY ? "📂 全部" : key
+            return (
+              <div
+                className="item"
+                key={idx}
+                onClick={() => handleOptionClick(key)}
+              >
+                {`${label}（${data[key]}）`}
+              </div>
+            )
+          })}
         </div>
       )}
     </StyledWrapper>
