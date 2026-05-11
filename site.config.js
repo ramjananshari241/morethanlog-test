@@ -1,10 +1,10 @@
 const CONFIG = {
   // profile setting (required)
   profile: {
-    name: "被USDT卡住了？",
+    name: "还不会使用USDT？",
     image: "/blog.png", // If you want to create your own notion avatar, check out https://notion-avatar.vercel.app
     role: " ",
-    bio: "欢迎来到【USDT萌新教学】！",
+    bio: "【USDT萌新教学】手把手带你入门！",
     email: "morethanmin.dev@gmail.com",
     linkedin: "morethanmin",
     github: "morethanmin",
@@ -18,7 +18,7 @@ const CONFIG = {
   ],
   // blog setting (required)
   blog: {
-    title: "被USDT卡住了？",
+    title: "USDT萌新教学",
     description: "一个姿势网站",
     scheme: "dark", // 'light' | 'dark' | 'system'
   },
