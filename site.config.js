@@ -4,7 +4,7 @@ const CONFIG = {
     name: "还不会使用USDT？",
     image: "/blog.png", // If you want to create your own notion avatar, check out https://notion-avatar.vercel.app
     role: " ",
-    bio: "别担心！我来手把手带你入门！",
+    bio: "别担心！我来带你入门！",
     email: "morethanmin.dev@gmail.com",
     linkedin: "morethanmin",
     github: "morethanmin",
@@ -12,13 +12,13 @@ const CONFIG = {
   },
   projects: [
     {
-      name: `morethan-log`,
-      href: "https://github.com/morethanmin/morethan-log",
+      name: `PRO+创作者平台·资源一站式寄售`,
+      href: "https://proplus.team",
     },
   ],
   // blog setting (required)
   blog: {
-    title: "USDT萌新补给包",
+    title: "USDT萌新站",
     description: "一个属于萌新的姿势网站",
     scheme: "dark", // 'light' | 'dark' | 'system'
   },
