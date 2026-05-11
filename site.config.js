@@ -12,13 +12,13 @@ const CONFIG = {
   },
   projects: [
     {
-      name: `PRO+创作者平台·资源一站式寄售`,
+      name: `PRO+创作者平台`,
       href: "https://proplus.team",
     },
   ],
   // blog setting (required)
   blog: {
-    title: "USDT萌新站",
+    title: "萌新MOFA",
     description: "一个属于萌新的姿势网站",
     scheme: "dark", // 'light' | 'dark' | 'system'
   },
