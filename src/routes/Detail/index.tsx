@@ -23,6 +23,7 @@ export default Detail
 
 const StyledWrapper = styled.div`
   padding: 2rem 0;
+  overflow: visible;
 
   &[data-type="Paper"] {
     padding: 40px 0;

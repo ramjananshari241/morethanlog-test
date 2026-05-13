@@ -1,4 +1,5 @@
 import { NotionAPI } from "notion-client"
+import { getPageContentBlockIds, idToUuid } from "notion-utils"
 
 // Minimal normalization: don't change shapes, just ensure ids exist
 // because react-notion-x / notion-utils may call `.replace` on ids internally.
@@ -43,6 +44,62 @@ const normalizeRecordMapIdsInPlace = (recordMap: any) => {
   return recordMap
 }
 
+const mergeBlocksFromChunk = (recordMap: any, chunk: any) => {
+  const newBlocks =
+    chunk?.recordMap?.block ?? chunk?.block ?? chunk?.recordMapWithRoles?.block
+  if (newBlocks && recordMap.block) {
+    Object.assign(recordMap.block, newBlocks)
+  }
+}
+
+/**
+ * Extra fetch passes for very long Notion pages: `getPage({ fetchMissingBlocks })`
+ * can still leave referenced block ids unfetched in edge cases; walk the tree and
+ * `getBlocks` until complete (bounded passes to avoid infinite loops).
+ */
+const fetchAllReferencedBlocks = async (
+  api: NotionAPI,
+  recordMap: any,
+  pageId: string
+) => {
+  const rootDashed = idToUuid(pageId)
+  const rootNoDash = rootDashed.replace(/-/g, "")
+  const rootId = recordMap.block?.[rootDashed]
+    ? rootDashed
+    : recordMap.block?.[rootNoDash]
+      ? rootNoDash
+      : rootDashed
+  const maxPasses = 80
+  const chunkSize = 100
+
+  for (let pass = 0; pass < maxPasses; pass++) {
+    let needed: string[] = []
+    try {
+      needed = getPageContentBlockIds(recordMap, rootId).filter(
+        (id) => !recordMap.block?.[id]
+      )
+    } catch {
+      break
+    }
+    if (!needed.length) break
+
+    const blockCountBefore = Object.keys(recordMap.block || {}).length
+
+    for (let i = 0; i < needed.length; i += chunkSize) {
+      const slice = needed.slice(i, i + chunkSize)
+      try {
+        const chunk: any = await api.getBlocks(slice)
+        mergeBlocksFromChunk(recordMap, chunk)
+      } catch {
+        break
+      }
+    }
+
+    const blockCountAfter = Object.keys(recordMap.block || {}).length
+    if (blockCountAfter <= blockCountBefore) break
+  }
+}
+
 export const getRecordMap = async (pageId: string) => {
   const api = new NotionAPI()
   const recordMap = await api.getPage(pageId, {
@@ -51,5 +108,7 @@ export const getRecordMap = async (pageId: string) => {
     // fetching collections is unnecessary for single page render and can be flaky
     fetchCollections: false,
   })
-  return normalizeRecordMapIdsInPlace(recordMap)
+  normalizeRecordMapIdsInPlace(recordMap)
+  await fetchAllReferencedBlocks(api, recordMap, pageId)
+  return recordMap
 }

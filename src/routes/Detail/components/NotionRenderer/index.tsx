@@ -149,6 +149,16 @@ const StyledWrapper = styled.div`
     overflow: visible !important;
   }
 
+  main.notion.notion-page .notion-page-content,
+  main.notion.notion-page .notion-page-content-inner {
+    overflow: visible !important;
+    max-height: none !important;
+  }
+
+  figure.notion-asset-wrapper {
+    overflow: visible;
+  }
+
   /* // TODO: why render? */
   .notion-collection-page-properties {
     display: none !important;
