@@ -1,5 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Long Notion posts embed a large `recordMap` in __NEXT_DATA__; raise warning threshold only.
+  experimental: {
+    largePageDataBytes: 12 * 1024 * 1024,
+  },
   images: {
     remotePatterns: [
       {

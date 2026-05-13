@@ -1,5 +1,5 @@
 import { NotionAPI } from "notion-client"
-import { getPageContentBlockIds, idToUuid } from "notion-utils"
+import { getPageContentBlockIds, idToUuid, mergeRecordMaps } from "notion-utils"
 
 // Minimal normalization: don't change shapes, just ensure ids exist
 // because react-notion-x / notion-utils may call `.replace` on ids internally.
@@ -44,6 +44,22 @@ const normalizeRecordMapIdsInPlace = (recordMap: any) => {
   return recordMap
 }
 
+/** Any block lists child ids in `content`; if those rows are missing, the page renders short. */
+const collectMissingContentIds = (recordMap: any): string[] => {
+  const table = recordMap?.block
+  if (!table || typeof table !== "object") return []
+  const missing = new Set<string>()
+  for (const entry of Object.values(table)) {
+    const v = (entry as any)?.value ?? entry
+    const ids = v?.content
+    if (!Array.isArray(ids)) continue
+    for (const id of ids) {
+      if (typeof id === "string" && id.length && !table[id]) missing.add(id)
+    }
+  }
+  return Array.from(missing)
+}
+
 const mergeBlocksFromChunk = (recordMap: any, chunk: any) => {
   const newBlocks =
     chunk?.recordMap?.block ?? chunk?.block ?? chunk?.recordMapWithRoles?.block
@@ -52,12 +68,22 @@ const mergeBlocksFromChunk = (recordMap: any, chunk: any) => {
   }
 }
 
+const mergeChunkIntoRecordMap = (recordMap: any, chunk: any) => {
+  if (chunk?.recordMap) {
+    const merged = mergeRecordMaps(recordMap, chunk.recordMap)
+    for (const k of Object.keys(merged)) {
+      ;(recordMap as any)[k] = (merged as any)[k]
+    }
+    return
+  }
+  mergeBlocksFromChunk(recordMap, chunk)
+}
+
 /**
- * Extra fetch passes for very long Notion pages: `getPage({ fetchMissingBlocks })`
- * can still leave referenced block ids unfetched in edge cases; walk the tree and
- * `getBlocks` until complete (bounded passes to avoid infinite loops).
+ * Keep fetching `getBlocks` until every `content[]` reference exists in `recordMap.block`.
+ * `getPage({ fetchMissingBlocks })` + `getPageContentBlockIds` can still miss edges on long pages.
  */
-const fetchAllReferencedBlocks = async (
+const fetchAllMissingBlocks = async (
   api: NotionAPI,
   recordMap: any,
   pageId: string
@@ -69,34 +95,38 @@ const fetchAllReferencedBlocks = async (
     : recordMap.block?.[rootNoDash]
       ? rootNoDash
       : rootDashed
-  const maxPasses = 80
-  const chunkSize = 100
+
+  const maxPasses = 250
+  const chunkSize = 80
 
   for (let pass = 0; pass < maxPasses; pass++) {
-    let needed: string[] = []
+    const fromContent = collectMissingContentIds(recordMap)
+    let fromTree: string[] = []
     try {
-      needed = getPageContentBlockIds(recordMap, rootId).filter(
+      fromTree = getPageContentBlockIds(recordMap, rootId).filter(
         (id) => !recordMap.block?.[id]
       )
     } catch {
-      break
+      // ignore — tree walk is best-effort
     }
+
+    const needed = [...new Set([...fromContent, ...fromTree])]
     if (!needed.length) break
 
-    const blockCountBefore = Object.keys(recordMap.block || {}).length
+    const countBefore = Object.keys(recordMap.block || {}).length
 
     for (let i = 0; i < needed.length; i += chunkSize) {
       const slice = needed.slice(i, i + chunkSize)
       try {
         const chunk: any = await api.getBlocks(slice)
-        mergeBlocksFromChunk(recordMap, chunk)
+        mergeChunkIntoRecordMap(recordMap, chunk)
       } catch {
-        break
+        // one batch failed; continue
       }
     }
 
-    const blockCountAfter = Object.keys(recordMap.block || {}).length
-    if (blockCountAfter <= blockCountBefore) break
+    const countAfter = Object.keys(recordMap.block || {}).length
+    if (countAfter <= countBefore) break
   }
 }
 
@@ -109,6 +139,6 @@ export const getRecordMap = async (pageId: string) => {
     fetchCollections: false,
   })
   normalizeRecordMapIdsInPlace(recordMap)
-  await fetchAllReferencedBlocks(api, recordMap, pageId)
+  await fetchAllMissingBlocks(api, recordMap, pageId)
   return recordMap
 }
