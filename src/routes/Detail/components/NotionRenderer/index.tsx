@@ -13,7 +13,7 @@ import "prismjs/themes/prism-tomorrow.css"
 // used for rendering equations (optional)
 
 import "katex/dist/katex.min.css"
-import { FC, useLayoutEffect, useRef } from "react"
+import { FC } from "react"
 import styled from "@emotion/styled"
 import ErrorBoundary from "src/components/ErrorBoundary"
 
@@ -108,98 +108,12 @@ const resolveRootPageId = (recordMap: any, preferred?: string) => {
   return preferred
 }
 
-const normalizeNotionMedia = (root: HTMLElement) => {
-  const candidates = root.querySelectorAll(
-    ".notion-asset-wrapper iframe, .notion-embed iframe, .notion-video iframe, .notion-asset-wrapper video"
-  )
-
-  candidates.forEach((node) => {
-    const el = node as HTMLElement
-
-    const rect = el.getBoundingClientRect()
-    if (el.tagName === "IFRAME" && rect.width && rect.width < 120) return
-
-    // Only normalize known Notion media hosts. Other iframes/videos should rely on CSS.
-    const hasKnownHost = !!el.closest(".notion-embed, .notion-video")
-    if (!hasKnownHost) return
-
-    const innerHost =
-      (el.closest(".notion-embed, .notion-video") as HTMLElement | null) ??
-      (el.closest(".notion-asset-wrapper") as HTMLElement | null)
-    const host = (innerHost ?? el.parentElement) as HTMLElement | null
-    if (!host) return
-
-    host.style.position = "relative"
-    host.style.display = "block"
-    host.style.width = "100%"
-    host.style.maxWidth = "100%"
-    host.style.overflow = "hidden"
-    host.style.borderRadius = "0.75rem"
-
-    const asset = host.closest(".notion-asset-wrapper") as HTMLElement | null
-    if (asset) {
-      asset.style.width = "100%"
-      asset.style.maxWidth = "100%"
-    }
-
-    el.style.width = "100%"
-    el.style.maxWidth = "100%"
-
-    if (el.tagName === "IFRAME") {
-      const iframe = el as HTMLIFrameElement
-      iframe.setAttribute("width", "100%")
-      iframe.style.border = "0"
-      iframe.style.display = "block"
-    }
-
-    // Treat embeds/videos as responsive media (avoid "flat" players)
-    host.style.height = "0"
-    host.style.paddingBottom = "56.25%"
-
-    el.style.position = "absolute"
-    el.style.inset = "0"
-    el.style.height = "100%"
-
-    el.dataset.mtMediaNormalized = "1"
-    host.dataset.mtMediaNormalized = "1"
-  })
-}
-
 const NotionRenderer: FC<Props> = ({ recordMap, rootPageId }) => {
   const [scheme] = useScheme()
   const resolvedRootPageId = resolveRootPageId(recordMap as any, rootPageId)
-  const rootRef = useRef<HTMLDivElement | null>(null)
-
-  useLayoutEffect(() => {
-    const root = rootRef.current
-    if (!root) return
-
-    let raf = 0
-    const schedule = () => {
-      cancelAnimationFrame(raf)
-      raf = requestAnimationFrame(() => normalizeNotionMedia(root))
-    }
-
-    schedule()
-
-    const mo = new MutationObserver(schedule)
-    mo.observe(root, { subtree: true, childList: true })
-
-    const ro =
-      typeof ResizeObserver !== "undefined"
-        ? new ResizeObserver(schedule)
-        : null
-    ro?.observe(root)
-
-    return () => {
-      mo.disconnect()
-      ro?.disconnect()
-      cancelAnimationFrame(raf)
-    }
-  }, [recordMap, resolvedRootPageId, scheme])
 
   return (
-    <StyledWrapper ref={rootRef}>
+    <StyledWrapper>
       <ErrorBoundary name="NotionRenderer">
         <_NotionRenderer
           darkMode={scheme === "dark"}
@@ -226,6 +140,15 @@ const NotionRenderer: FC<Props> = ({ recordMap, rootPageId }) => {
 export default NotionRenderer
 
 const StyledWrapper = styled.div`
+  /* react-notion-x (non-fullPage) renders <main class="notion notion-page">.
+     Avoid any accidental height/overflow traps so long posts scroll on the window. */
+  main.notion.notion-page {
+    min-height: 0;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
   /* // TODO: why render? */
   .notion-collection-page-properties {
     display: none !important;

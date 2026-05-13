@@ -9,7 +9,7 @@ const ContactCard: React.FC = () => {
   return (
     <>
       <StyledTitle>
-        <Emoji>💬</Emoji> 联系
+        <Emoji>💬</Emoji> 联系我们
       </StyledTitle>
       <StyledWrapper>
         <a href={TELEGRAM_URL} rel="noreferrer" target="_blank">

@@ -69,4 +69,7 @@ const StyledMain = styled.main`
   width: 100%;
   max-width: 1120px;
   padding: 0 1rem;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: visible;
 `
