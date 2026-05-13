@@ -194,7 +194,6 @@ const StyledWrapper = styled.div`
     width: 100% !important;
     max-width: 100% !important;
   }
-  .notion-asset-wrapper img,
   .notion-asset-wrapper video,
   .notion-asset-wrapper iframe {
     display: block;
@@ -204,6 +203,24 @@ const StyledWrapper = styled.div`
     border-radius: 0.75rem;
     overflow: hidden;
     background: ${({ theme }) => theme.colors.gray2};
+  }
+  /* Images: do not force full column width (tall portraits become huge). Cap height, keep aspect ratio. */
+  .notion-asset-wrapper img {
+    display: block;
+    width: auto !important;
+    max-width: 100% !important;
+    max-height: min(88vh, 900px) !important;
+    height: auto !important;
+    object-fit: contain !important;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 0.75rem;
+    background: ${({ theme }) => theme.colors.gray2};
+  }
+  figure.notion-asset-wrapper.notion-asset-wrapper-image > div {
+    display: flex;
+    justify-content: center;
+    width: 100%;
   }
   .notion-asset-wrapper iframe {
     width: 100%;
@@ -266,8 +283,13 @@ const StyledWrapper = styled.div`
   .notion-image,
   .notion-image > picture,
   .notion-image > img {
-    width: 100% !important;
+    width: auto !important;
     max-width: 100% !important;
+    max-height: min(88vh, 900px) !important;
+    height: auto !important;
+    object-fit: contain !important;
+    margin-left: auto;
+    margin-right: auto;
   }
   .notion-quote {
     border-left-color: rgba(255, 255, 255, 0.25);
