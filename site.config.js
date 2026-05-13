@@ -21,6 +21,12 @@ const CONFIG = {
     title: "萌新MOFA",
     description: "一个属于萌新的姿势网站",
     scheme: "dark", // 'light' | 'dark' | 'system'
+    /**
+     * 文章列表顺序：
+     * - "notion"：与 Notion 数据库里「主视图」的行顺序一致（推荐）。
+     * - "date"：按文章 Date 字段排序（新→旧；页面上点「升序」会变成旧→新）。
+     */
+    postOrder: "notion",
   },
 
   // CONFIG configration (required)

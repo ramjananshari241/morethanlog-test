@@ -42,19 +42,35 @@ export default function getAllPageIds(
 
   const views = Object.values(collectionQuery)[0] as any
 
+  const blockIdsFromViewState = (view: any): ID[] | undefined => {
+    if (!view) return undefined
+    if (Array.isArray(view.blockIds)) return view.blockIds
+    const g = view.collection_group_results ?? view.reducerResults?.collection_group_results
+    if (Array.isArray(g?.blockIds)) return g.blockIds
+    return undefined
+  }
+
   let pageIds: ID[] = []
   if (viewId) {
     const vId = idToUuid(viewId)
-    pageIds = views[vId]?.blockIds
+    pageIds =
+      blockIdsFromViewState(views[vId]) ??
+      (views[vId]?.blockIds as ID[] | undefined) ??
+      []
   } else {
-    const pageSet = new Set<ID>()
-    // * type not exist
-    Object.values(views).forEach((view: any) => {
-      view?.collection_group_results?.blockIds?.forEach((id: ID) =>
-        pageSet.add(id)
-      )
-    })
-    pageIds = [...pageSet]
+    // Prefer the first linked view's row order (matches Notion list/table order).
+    const viewEntries = views && typeof views === "object" ? Object.values(views) : []
+    const primary = viewEntries[0] as any
+    const ordered = blockIdsFromViewState(primary)
+    if (ordered?.length) {
+      pageIds = [...ordered]
+    } else {
+      const pageSet = new Set<ID>()
+      viewEntries.forEach((view: any) => {
+        blockIdsFromViewState(view)?.forEach((id: ID) => pageSet.add(id))
+      })
+      pageIds = [...pageSet]
+    }
   }
   if (!pageIds?.length) {
     const fallbackIds = fallbackFromBlocks()
